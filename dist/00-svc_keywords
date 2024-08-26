@@ -3,6 +3,7 @@ apport
 apt-
 arp-
 auditd
+auth-rpcgss-
 blk-availability
 bolt
 cgroupfs-mount
@@ -56,6 +57,9 @@ netplan-ovs-cleanup
 networkd-dispatcher
 networking
 NetworkManager
+nfs-common
+nfs-idmapd
+nfs-utils
 nis-
 nm-
 open-iscsi
@@ -73,6 +77,8 @@ rc-local
 rcS.service
 rdisc
 rescue.service
+rpc-gssd
+rpc-statd
 rpmdb-
 rsync
 screen-cleanup
@@ -99,5 +105,6 @@ upower
 usbmuxd
 uuidd
 vgauth
+wazuh-indexer-
 x11-common
 xfs_scrub_all
