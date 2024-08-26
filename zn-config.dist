@@ -1,0 +1,12 @@
+# Services to exclude from monitoring (separated by commas)
+# Example: exclude snapd and apparmor
+# excluded_services="snapd,apparmor"
+
+# Services to include in monitoring (separated by commas)
+# Example: include docker and nginx
+# included_services="docker,nginx"
+
+# Set the excluded and included services
+# Note: To apply changes, re-run: source install.sh
+excluded_services=""
+included_services=""

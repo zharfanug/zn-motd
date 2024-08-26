@@ -1,0 +1,7 @@
+sftp-config.json
+zn-config
+zn-config.*
+!zn-config.dist
+push.sh
+merge.sh
+sample.sh
