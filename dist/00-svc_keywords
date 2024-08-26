@@ -79,6 +79,7 @@ rdisc
 rescue.service
 rpc-gssd
 rpc-statd
+rpc-svcgssd
 rpmdb-
 rsync
 screen-cleanup
