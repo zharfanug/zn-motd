@@ -73,7 +73,7 @@ install_if_not_exist() {
   if ! command -v "$1" >/dev/null 2>&1; then
     message="$Y'$pkg_name' is not installed. Installing it now...$W"
     echo -e >&2 "$message"
-    install_pkg pkg_name
+    install_pkg $pkg_name
   fi
 }
 
