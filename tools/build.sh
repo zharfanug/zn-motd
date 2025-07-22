@@ -1,4 +1,11 @@
 #!/bin/sh
+
+SCRIPT_PATH=$(realpath "$0")
+SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+
+cd "$SCRIPT_DIR"
+cd ..
+
 SRC_DIR="src"
 BUILD_DIR="dev-build"
 

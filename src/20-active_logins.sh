@@ -1,11 +1,13 @@
-print_active_logins() {
-  who_output=$(who)
-
+show_active_logins() {
   echo -e "\n${W}Active Logins:"
+
   printf "  %-19s | %-10s | %-17s | %s\n" "User" "Terminal" "Session Start" "From"
   while IFS= read -r line; do
     who_str=""
     who_invalid=0
+    if [ -z "$line" ]; then
+      continue
+    fi
     username=$(echo "$line" | awk '{print $1}')
     if ! echo "$username" | grep -Eq "^[a-zA-Z][a-zA-Z0-9_-]{2,31}$"; then
       who_invalid=$((who_invalid + 1))
@@ -42,6 +44,12 @@ print_active_logins() {
   done <<EOF
 $who_output
 EOF
+}
 
+print_active_logins() {
+  who_output=$(who)
+  if ! [ -z "$who_output" ]; then
+    show_active_logins
+  fi
 }
 

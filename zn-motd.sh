@@ -8,7 +8,7 @@ included_services="" # only config if somehow service is excluded by predifined 
 predefined_excluded_services="apparmor|apport|apt-|arp-|auditd|auth-rpcgss-|blk-availability|bolt|cgroupfs-mount|chrony|cloud-|console-|containerd|cpupower|cron|cryptdisks|dbus|debug-shell|dmesg|dm-event|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty-|gpu-manager|grub-|grub2-|hwclock|ifup|initrd-|irqbalance|iscsi|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|ModemManager|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|procps|quotaon|raid-|rc.service|rc-local|rcS.service|rdisc|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|screen-cleanup|secureboot-db|selinux-|setvtrgb|snap|snmpd|ssh|sssd|sudo|sysstat-|systemd-|system-update-cleanup|thermald|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-notifier-download|update-notifier-motd|upower|usbmuxd|uuidd|vgauth|wazuh-indexer-|wsl-|x11-common|xfs_scrub_all"
 predefined_excluded_instance_services="getty|ifup|lvm2|systemd-|user@|user-"
 
-motd_ver="1.0.0_202502061828"
+motd_ver="1.0.1_202507221844"
 
 # Usage threshold
 warn_usage=50
@@ -62,14 +62,16 @@ update_tmp_post() {
   chmod 666 $TMP_DIR/${FILE_PREFIX}* >/dev/null 2>&1
 }
 
-print_active_logins() {
-  who_output=$(who)
-
+show_active_logins() {
   echo -e "\n${W}Active Logins:"
+
   printf "  %-19s | %-10s | %-17s | %s\n" "User" "Terminal" "Session Start" "From"
   while IFS= read -r line; do
     who_str=""
     who_invalid=0
+    if [ -z "$line" ]; then
+      continue
+    fi
     username=$(echo "$line" | awk '{print $1}')
     if ! echo "$username" | grep -Eq "^[a-zA-Z][a-zA-Z0-9_-]{2,31}$"; then
       who_invalid=$((who_invalid + 1))
@@ -106,7 +108,13 @@ print_active_logins() {
   done <<EOF
 $who_output
 EOF
+}
 
+print_active_logins() {
+  who_output=$(who)
+  if ! [ -z "$who_output" ]; then
+    show_active_logins
+  fi
 }
 
 print_reboot_check() {
@@ -253,7 +261,7 @@ print_disk_usage() {
   disk_root_total_h=$(echo "$disk_root_info_h" | awk '{print $2}')
   print_usage "DiskRoot" $disk_root_used $disk_root_used_h $disk_root_total $disk_root_total_h
 
-  disks=$(df | grep -vP 'tmpfs|\/dev\/(?!mapper)|\/wsl|WSL2' | awk '{print $6}' | tail -n +2 | grep -vE '^(/boot|/snap|/dev|/run|/init)' | grep -vE '^(/)$')
+  disks=$(df | grep -vP 'tmpfs|\/dev\/(?!mapper)|\/wsl|WSL2|docker\/overlay2\/' | awk '{print $6}' | tail -n +2 | grep -vE '^(/boot|/snap|/dev|/run|/init)' | grep -vE '^(/)$')
   if [ -n "$disks" ]; then
     echo "$disks" | while read -r line; do
       disk_info=$(df "$line" | awk 'NR==2 {print $3, $2, $5}')

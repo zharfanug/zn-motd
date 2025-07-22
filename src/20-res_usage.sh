@@ -135,7 +135,7 @@ print_disk_usage() {
   disk_root_total_h=$(echo "$disk_root_info_h" | awk '{print $2}')
   print_usage "DiskRoot" $disk_root_used $disk_root_used_h $disk_root_total $disk_root_total_h
 
-  disks=$(df | grep -vP 'tmpfs|\/dev\/(?!mapper)|\/wsl|WSL2' | awk '{print $6}' | tail -n +2 | grep -vE '^(/boot|/snap|/dev|/run|/init)' | grep -vE '^(/)$')
+  disks=$(df | grep -vP 'tmpfs|\/dev\/(?!mapper)|\/wsl|WSL2|docker\/overlay2\/' | awk '{print $6}' | tail -n +2 | grep -vE '^(/boot|/snap|/dev|/run|/init)' | grep -vE '^(/)$')
   if [ -n "$disks" ]; then
     echo "$disks" | while read -r line; do
       disk_info=$(df "$line" | awk 'NR==2 {print $3, $2, $5}')
