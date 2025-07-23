@@ -55,15 +55,17 @@ print_cpu_usage() {
   fi
 
   # Clean up temporary file
-  rm "$tmp_file" >/dev/null 2>&1
   cpu_used_percent="0.00"
   if [ "$syntax_id" -eq 1 ]; then
-    cpu_line=$(iostat -c 2 -w 1 | tail -n 1)
+    cpu_line=$(cat $tmp_file | tail -n 1)
     cpu_idle=$(echo "$cpu_line" | awk '{print $NF}')
     cpu_idle=$(expr "$cpu_idle" \* 100)
   elif [ "$syntax_id" -eq 2 ]; then
-    cpu_idle=$(mpstat 1 1 | awk '/Average:/ {print $NF}')
+    cpu_idle=$(cat $tmp_file | awk '/Average:/ {print $NF}')
     cpu_idle=$(echo "$cpu_idle" | sed 's/\.//g')
+    disk_io=$(cat $tmp_file | awk '/Average:/ {print $6}')
+    disk_io=$(echo "$disk_io" | sed 's/\.//g')
+    cpu_idle=$((cpu_idle + disk_io))
   fi
   cpu_used_ratio=$((10000 - cpu_idle))
   cpu_used_ratio_last_two=$(echo "$cpu_used_ratio" | awk '{print substr($0, length($0) - 1)}')
@@ -94,6 +96,7 @@ print_cpu_usage() {
   fi
 
   printf "${W}  %-*s: ${cpu_color}%s${W} %s\n" "$cs" "CPU" "${cpu_used_percent}%" "(${PROCESSOR_COUNT} CPU)"
+  rm "$tmp_file" >/dev/null 2>&1
 }
 
 print_mem_usage() {
