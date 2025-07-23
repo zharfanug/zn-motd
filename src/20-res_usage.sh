@@ -36,7 +36,24 @@ print_usage() {
   fi
 }
 
-print_cpu_usage() {
+get_cpu_idle() {
+  sar_tmp_file=$(mktemp)
+  if command -v systemctl >/dev/null 2>&1; then
+    if systemctl is-active --quiet sysstat; then
+      if command -v sar >/dev/null 2>&1; then
+        if time_min_30=$(date -d '30 minutes ago' +%H:%M:%S); then
+          if sar -u -s "$time_min_30" > "$sar_tmp_file" 2>&1; then
+            sar_disk_io=$(cat $sar_tmp_file | awk '/Average/ {print $6}' | sed 's/\.//g')
+            sar_cpu_idle=$(cat $sar_tmp_file | awk '/Average/ {print $8}' | sed 's/\.//g')
+          fi
+        fi
+      fi
+    fi
+  fi
+  rm "$sar_tmp_file" >/dev/null 2>&1
+}
+
+get_cpu_idle_live() {
   # Temporary file to capture output
   tmp_file=$(mktemp)
   syntax_id=0
@@ -67,6 +84,17 @@ print_cpu_usage() {
     disk_io=$(echo "$disk_io" | sed 's/\.//g')
     cpu_idle=$((cpu_idle + disk_io))
   fi
+  rm "$tmp_file" >/dev/null 2>&1
+}
+
+print_cpu_usage() {
+  get_cpu_idle
+  if [ -n "$sar_cpu_idle" ]; then
+    cpu_idle=$(( sar_cpu_idle + sar_disk_io ))
+  else
+    get_cpu_idle_live
+  fi
+
   cpu_used_ratio=$((10000 - cpu_idle))
   cpu_used_ratio_last_two=$(echo "$cpu_used_ratio" | awk '{print substr($0, length($0) - 1)}')
   cpu_used_ratio_rest=$(echo "$cpu_used_ratio" | awk '{print substr($0, 1, length($0) - 2)}')
@@ -96,7 +124,6 @@ print_cpu_usage() {
   fi
 
   printf "${W}  %-*s: ${cpu_color}%s${W} %s\n" "$cs" "CPU" "${cpu_used_percent}%" "(${PROCESSOR_COUNT} CPU)"
-  rm "$tmp_file" >/dev/null 2>&1
 }
 
 print_mem_usage() {

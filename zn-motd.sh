@@ -8,7 +8,7 @@ included_services="" # only config if somehow service is excluded by predifined 
 predefined_excluded_services="apparmor|apport|apt-|arp-|auditd|auth-rpcgss-|blk-availability|bolt|cgroupfs-mount|chrony|cloud-|console-|containerd|cpupower|cron|cryptdisks|dbus|debug-shell|dmesg|dm-event|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty-|gpu-manager|grub-|grub2-|hwclock|ifup|initrd-|irqbalance|iscsi|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|ModemManager|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|procps|quotaon|raid-|rc.service|rc-local|rcS.service|rdisc|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|screen-cleanup|secureboot-db|selinux-|setvtrgb|snap|snmpd|ssh|sssd|sudo|sysstat-|systemd-|system-update-cleanup|thermald|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-notifier-download|update-notifier-motd|upower|usbmuxd|uuidd|vgauth|wazuh-indexer-|wsl-|x11-common|xfs_scrub_all"
 predefined_excluded_instance_services="getty|ifup|lvm2|systemd-|user@|user-"
 
-motd_ver="1.0.2_202507232230"
+motd_ver="1.0.3_202507232324"
 
 # Usage threshold
 warn_usage=50
@@ -162,7 +162,24 @@ print_usage() {
   fi
 }
 
-print_cpu_usage() {
+get_cpu_idle() {
+  sar_tmp_file=$(mktemp)
+  if command -v systemctl >/dev/null 2>&1; then
+    if systemctl is-active --quiet sysstat; then
+      if command -v sar >/dev/null 2>&1; then
+        if time_min_30=$(date -d '30 minutes ago' +%H:%M:%S); then
+          if sar -u -s "$time_min_30" > "$sar_tmp_file" 2>&1; then
+            sar_disk_io=$(cat $sar_tmp_file | awk '/Average/ {print $6}' | sed 's/\.//g')
+            sar_cpu_idle=$(cat $sar_tmp_file | awk '/Average/ {print $8}' | sed 's/\.//g')
+          fi
+        fi
+      fi
+    fi
+  fi
+  rm "$sar_tmp_file" >/dev/null 2>&1
+}
+
+get_cpu_idle_live() {
   # Temporary file to capture output
   tmp_file=$(mktemp)
   syntax_id=0
@@ -193,6 +210,17 @@ print_cpu_usage() {
     disk_io=$(echo "$disk_io" | sed 's/\.//g')
     cpu_idle=$((cpu_idle + disk_io))
   fi
+  rm "$tmp_file" >/dev/null 2>&1
+}
+
+print_cpu_usage() {
+  get_cpu_idle
+  if [ -n "$sar_cpu_idle" ]; then
+    cpu_idle=$(( sar_cpu_idle + sar_disk_io ))
+  else
+    get_cpu_idle_live
+  fi
+
   cpu_used_ratio=$((10000 - cpu_idle))
   cpu_used_ratio_last_two=$(echo "$cpu_used_ratio" | awk '{print substr($0, length($0) - 1)}')
   cpu_used_ratio_rest=$(echo "$cpu_used_ratio" | awk '{print substr($0, 1, length($0) - 2)}')
@@ -222,7 +250,6 @@ print_cpu_usage() {
   fi
 
   printf "${W}  %-*s: ${cpu_color}%s${W} %s\n" "$cs" "CPU" "${cpu_used_percent}%" "(${PROCESSOR_COUNT} CPU)"
-  rm "$tmp_file" >/dev/null 2>&1
 }
 
 print_mem_usage() {
