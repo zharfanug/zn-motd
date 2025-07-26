@@ -41,10 +41,13 @@ get_cpu_idle() {
   if command -v systemctl >/dev/null 2>&1; then
     if systemctl is-active --quiet sysstat; then
       if command -v sar >/dev/null 2>&1; then
-        if time_min_30=$(date -d '30 minutes ago' +%H:%M:%S); then
-          if sar -u -s "$time_min_30" > "$sar_tmp_file" 2>&1; then
-            sar_disk_io=$(cat $sar_tmp_file | awk '/Average/ {print $6}' | sed 's/\.//g')
-            sar_cpu_idle=$(cat $sar_tmp_file | awk '/Average/ {print $8}' | sed 's/\.//g')
+        if sar -u | tail -n 2 > "$sar_tmp_file" 2>&1; then
+          if cat "$sar_tmp_file" | grep "Average" >/dev/null 2>&1; then
+            if sar_disk_io=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $(NF-2)}' | sed 's/\.//g') + 1 - 1 ))  >/dev/null 2>&1; then
+              if sar_cpu_idle=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $NF}' | sed 's/\.//g') + 1 - 1 ))  >/dev/null 2>&1; then
+                sar_data=true
+              fi
+            fi
           fi
         fi
       fi
@@ -89,7 +92,7 @@ get_cpu_idle_live() {
 
 print_cpu_usage() {
   get_cpu_idle
-  if [ -n "$sar_cpu_idle" ]; then
+  if [ -n "$sar_data" ]; then
     cpu_idle=$(( sar_cpu_idle + sar_disk_io ))
   else
     get_cpu_idle_live
