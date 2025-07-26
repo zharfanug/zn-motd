@@ -43,8 +43,8 @@ get_cpu_idle() {
       if command -v sar >/dev/null 2>&1; then
         if sar -u | tail -n 2 > "$sar_tmp_file" 2>&1; then
           if cat "$sar_tmp_file" | grep "Average" >/dev/null 2>&1; then
-            if sar_disk_io=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $(NF-2)}' | sed 's/\.//g') + 1 - 1 ))  >/dev/null 2>&1; then
-              if sar_cpu_idle=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $NF}' | sed 's/\.//g') + 1 - 1 ))  >/dev/null 2>&1; then
+            if sar_disk_io=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $(NF-2)}' | sed 's/\.//g' | sed 's/^0*//') + 1 - 1 ))  >/dev/null 2>&1; then
+              if sar_cpu_idle=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $NF}' | sed 's/\.//g' | sed 's/^0*//') + 1 - 1 ))  >/dev/null 2>&1; then
                 sar_data=true
               fi
             fi
@@ -82,9 +82,9 @@ get_cpu_idle_live() {
     cpu_idle=$(expr "$cpu_idle" \* 100)
   elif [ "$syntax_id" -eq 2 ]; then
     cpu_idle=$(cat $tmp_file | awk '/Average:/ {print $NF}')
-    cpu_idle=$(echo "$cpu_idle" | sed 's/\.//g')
+    cpu_idle=$(echo "$cpu_idle" | sed 's/\.//g' | sed 's/^0*//')
     disk_io=$(cat $tmp_file | awk '/Average:/ {print $6}')
-    disk_io=$(echo "$disk_io" | sed 's/\.//g')
+    disk_io=$(echo "$disk_io" | sed 's/\.//g' | sed 's/^0*//')
     cpu_idle=$((cpu_idle + disk_io))
   fi
   rm "$tmp_file" >/dev/null 2>&1

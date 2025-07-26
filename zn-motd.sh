@@ -8,7 +8,7 @@ included_services="" # only config if somehow service is excluded by predifined 
 predefined_excluded_services="apparmor|apport|apt-|arp-|auditd|auth-rpcgss-|blk-availability|bolt|cgroupfs-mount|chrony|cloud-|console-|containerd|cpupower|cron|cryptdisks|dbus|debug-shell|dmesg|dm-event|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty-|gpu-manager|grub-|grub2-|hwclock|ifup|initrd-|irqbalance|iscsi|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|ModemManager|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|procps|quotaon|raid-|rc.service|rc-local|rcS.service|rdisc|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|screen-cleanup|secureboot-db|selinux-|setvtrgb|snap|snmpd|ssh|sssd|sudo|sysstat-|systemd-|system-update-cleanup|thermald|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-notifier-download|update-notifier-motd|upower|usbmuxd|uuidd|vgauth|wazuh-indexer-|wsl-|x11-common|xfs_scrub_all"
 predefined_excluded_instance_services="getty|ifup|lvm2|systemd-|user@|user-"
 
-motd_ver="1.0.4_202507261818"
+motd_ver="1.0.5_202507270154"
 
 # Usage threshold
 warn_usage=50
@@ -169,8 +169,8 @@ get_cpu_idle() {
       if command -v sar >/dev/null 2>&1; then
         if sar -u | tail -n 2 > "$sar_tmp_file" 2>&1; then
           if cat "$sar_tmp_file" | grep "Average" >/dev/null 2>&1; then
-            if sar_disk_io=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $(NF-2)}' | sed 's/\.//g') + 1 - 1 ))  >/dev/null 2>&1; then
-              if sar_cpu_idle=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $NF}' | sed 's/\.//g') + 1 - 1 ))  >/dev/null 2>&1; then
+            if sar_disk_io=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $(NF-2)}' | sed 's/\.//g' | sed 's/^0*//') + 1 - 1 ))  >/dev/null 2>&1; then
+              if sar_cpu_idle=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $NF}' | sed 's/\.//g' | sed 's/^0*//') + 1 - 1 ))  >/dev/null 2>&1; then
                 sar_data=true
               fi
             fi
@@ -208,9 +208,9 @@ get_cpu_idle_live() {
     cpu_idle=$(expr "$cpu_idle" \* 100)
   elif [ "$syntax_id" -eq 2 ]; then
     cpu_idle=$(cat $tmp_file | awk '/Average:/ {print $NF}')
-    cpu_idle=$(echo "$cpu_idle" | sed 's/\.//g')
+    cpu_idle=$(echo "$cpu_idle" | sed 's/\.//g' | sed 's/^0*//')
     disk_io=$(cat $tmp_file | awk '/Average:/ {print $6}')
-    disk_io=$(echo "$disk_io" | sed 's/\.//g')
+    disk_io=$(echo "$disk_io" | sed 's/\.//g' | sed 's/^0*//')
     cpu_idle=$((cpu_idle + disk_io))
   fi
   rm "$tmp_file" >/dev/null 2>&1
