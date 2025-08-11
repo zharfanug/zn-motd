@@ -15,6 +15,7 @@ download() {
 }
 
 mkdir -p "$TMP_DIR"
+chown nobody:nogroup "$TMP_DIR" >/dev/null 2>&1
 
 update_tmp_pre() {
   FILE_PREFIX=$1
