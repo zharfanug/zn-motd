@@ -111,5 +111,6 @@ uuidd
 vgauth
 wazuh-indexer-
 wsl-
+wtmpdb-
 x11-common
 xfs_scrub_all
