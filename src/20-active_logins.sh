@@ -25,7 +25,14 @@ show_active_logins() {
 
     login_terminal=$(echo "$line" | grep -Eo "(tty[v]?[0-9]+|pts/[0-9]+|console|seat[0-9]+)")
     if [ -z "$login_terminal" ]; then
-      login_terminal="unknown"
+      login_terminal2=$(echo "$line" | grep -Eo "(\s+ssh[d]?\s+)")
+      if [ -z "$login_terminal2" ]; then
+        login_terminal="unknown"
+      else
+        set -- $login_terminal2
+        login_terminal2=$*
+        login_terminal=$login_terminal2
+      fi
     fi
 
     login_ip=$(echo "$line" | grep -Eo "([0-9]{1,3}\.){3}[0-9]{1,3}")
