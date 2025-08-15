@@ -25,16 +25,12 @@ fi
 # echo "Running the install.sh as $(whoami)"
 
 if [ -x "/bin/sudo" ]; then
-  [ -x "/bin/apt" ] && alias apt="sudo /bin/apt -y"
-  [ -x "/bin/yum" ] && alias yum='sudo /bin/yum -y'
   [ -x "/bin/rm" ] && alias rm='sudo /bin/rm -f'
   [ -x "/bin/mv" ] && alias mv='sudo /bin/mv -f'
   [ -x "/bin/ln" ] && alias ln='sudo /bin/ln'
   [ -x "/bin/chmod" ] && alias chmod='sudo /bin/chmod'
   [ -x "/bin/curl" ] && alias curl='sudo /bin/curl'
 else
-  [ -x "/bin/apt" ] && alias apt="/bin/apt -y"
-  [ -x "/bin/yum" ] && alias yum='/bin/yum -y'
   [ -x "/bin/rm" ] && alias rm='/bin/rm -f'
   [ -x "/bin/mv" ] && alias mv='/bin/mv -f'
   [ -x "/bin/ln" ] && alias ln='/bin/ln'
@@ -43,18 +39,53 @@ else
 fi
 [ -x "/bin/echo" ] && alias echo='/bin/echo'
 
+if command -v sudo >/dev/null 2>&1; then
+  apt()    { sudo apt -y "$@" || exit 1; }
+  yum()    { sudo yum -y "$@" || exit 1; }
+  dnf()    { sudo dnf -y "$@" || exit 1; }
+  zypper() { sudo zypper -y "$@" || exit 1; }
+else
+  apt()    { command apt -y "$@" || exit 1; }
+  yum()    { command yum -y "$@" || exit 1; }
+  dnf()    { command dnf -y "$@" || exit 1; }
+  zypper() { command zypper -y "$@" || exit 1; }
+fi
+
 do_repo_update() {
-  [ -x "/bin/apt" ] && apt update
-  [ -x "/bin/yum" ] && yum makecache
   repo_update=1
+  if command -v apt >/dev/null 2>&1; then
+    apt update
+  elif command -v dnf >/dev/null 2>&1; then
+    dnf makecache
+  elif command -v yum >/dev/null 2>&1; then
+    yum makecache
+  elif command -v zypper >/dev/null 2>&1; then
+    zypper refresh
+  else
+    repo_update=0
+    echo "❌ Error: No supported package manager found (apt, dnf, yum, zypper)"
+  fi
 }
 
 install_pkg() {
   if [ "$repo_update" -eq 0 ]; then
     do_repo_update
   fi
-  [ -x "/bin/apt" ] && apt install $1
-  [ -x "/bin/yum" ] && yum install $1
+
+  if command -v apt >/dev/null 2>&1; then
+    apt install "$1"
+  elif command -v dnf >/dev/null 2>&1; then
+    dnf install "$1"
+  elif command -v yum >/dev/null 2>&1; then
+    yum install "$1"
+  elif command -v zypper >/dev/null 2>&1; then
+    zypper install "$1"
+  else
+    echo "❌ Error: No supported package manager found (apt, dnf, yum, zypper)"
+    if [ "$2" = "true" ]; then
+      exit 1
+    fi
+  fi
 }
 
 install_if_not_exist() {
@@ -67,7 +98,7 @@ install_if_not_exist() {
   if ! command -v "$1" >/dev/null 2>&1; then
     message="$Y'$pkg_name' is not installed. Installing it now...$W"
     echo -e >&2 "$message"
-    install_pkg $pkg_name
+    install_pkg $pkg_name true
   fi
 }
 

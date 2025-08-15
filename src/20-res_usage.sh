@@ -41,7 +41,7 @@ get_cpu_idle() {
   if command -v systemctl >/dev/null 2>&1; then
     if systemctl is-active --quiet sysstat; then
       if command -v sar >/dev/null 2>&1; then
-        if sar -u | tail -n 2 > "$sar_tmp_file" 2>&1; then
+        if sar -u 2>/dev/null | tail -n 2 > "$sar_tmp_file" 2>/dev/null; then
           if cat "$sar_tmp_file" | grep "Average" >/dev/null 2>&1; then
             if sar_disk_io=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $(NF-2)}' | sed 's/\.//g' | sed 's/^0*//') + 1 - 1 ))  >/dev/null 2>&1; then
               if sar_cpu_idle=$(( $(cat $sar_tmp_file | head -n 1 | awk '{print $NF}' | sed 's/\.//g' | sed 's/^0*//') + 1 - 1 ))  >/dev/null 2>&1; then
