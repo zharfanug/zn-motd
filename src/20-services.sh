@@ -29,6 +29,7 @@ filter_known_services() {
   omit_service "keepalived" "ipvsadm"
   omit_service "mariadb" "mysql"
   omit_service "mysql" "mysqld"
+  omit_service "glusterd" "glustereventsd|glusterfs|gluster-|nfs-blkmap|portmap|rpcbind"
 }
 
 get_services() {
