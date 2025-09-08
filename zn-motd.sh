@@ -8,7 +8,7 @@ included_services="" # only config if somehow service is excluded by predifined 
 predefined_excluded_services="apparmor|apport|apt-|arp-|auditd|auth-rpcgss-|blk-availability|bolt|cgroupfs-mount|chrony|cloud-|console-|containerd|cpupower|cron|cryptdisks|dbus|debug-shell|dmesg|dm-event|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty-|gpu-manager|grub-|grub2-|hwclock|ifup|initrd-|irqbalance|iscsi|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|ModemManager|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|procps|quotaon|raid-|rc.service|rc-local|rcS.service|rdisc|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|screen-cleanup|secureboot-db|selinux-|setvtrgb|snap|snmpd|ssh|sssd|sudo|sysstat-|systemd-|system-update-cleanup|thermald|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-notifier-download|update-notifier-motd|upower|usbmuxd|uuidd|vgauth|wazuh-indexer-|wsl-|wtmpdb-|x11-common|xfs_scrub_all"
 predefined_excluded_instance_services="getty|ifup|lvm2|systemd-|user@|user-"
 
-motd_ver="1.0.7_202509081733"
+motd_ver="1.0.8_202509081754"
 
 # Usage threshold
 warn_usage=50
@@ -52,7 +52,9 @@ download() {
 }
 
 mkdir -p "$TMP_DIR"
-chown nobody:nogroup "$TMP_DIR" >/dev/null 2>&1
+if [ "$(dirname $TMP_DIR)" = "/tmp" ]; then
+  chown nobody:nogroup "$TMP_DIR" >/dev/null 2>&1
+fi
 
 update_tmp_pre() {
   FILE_PREFIX=$1
@@ -63,7 +65,9 @@ update_tmp_post() {
   TMP_FILE_PREFIX=$1
   TMP_FILE=$2
   sleep 1
-  chown nobody:nogroup $TMP_DIR/${FILE_PREFIX}* >/dev/null 2>&1
+  if [ "$(dirname $TMP_DIR)" = "/tmp" ]; then
+    chown nobody:nogroup $TMP_DIR/${FILE_PREFIX}* >/dev/null 2>&1
+  fi
 }
 
 show_active_logins() {
@@ -528,7 +532,6 @@ EOF
   
   pub_ip_info="Unavailable"
   if [ -f "$TMP_DIR/$PUB_IP_FILE" ]; then
-    echo "$TMP_DIR/$PUB_IP_FILE"
     pub_ip_info=$(cat $TMP_DIR/$PUB_IP_FILE)
   else
     if command -v curl >/dev/null 2>&1; then

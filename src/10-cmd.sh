@@ -15,7 +15,9 @@ download() {
 }
 
 mkdir -p "$TMP_DIR"
-chown nobody:nogroup "$TMP_DIR" >/dev/null 2>&1
+if [ "$(dirname $TMP_DIR)" = "/tmp" ]; then
+  chown nobody:nogroup "$TMP_DIR" >/dev/null 2>&1
+fi
 
 update_tmp_pre() {
   FILE_PREFIX=$1
@@ -26,6 +28,8 @@ update_tmp_post() {
   TMP_FILE_PREFIX=$1
   TMP_FILE=$2
   sleep 1
-  chown nobody:nogroup $TMP_DIR/${FILE_PREFIX}* >/dev/null 2>&1
+  if [ "$(dirname $TMP_DIR)" = "/tmp" ]; then
+    chown nobody:nogroup $TMP_DIR/${FILE_PREFIX}* >/dev/null 2>&1
+  fi
 }
 

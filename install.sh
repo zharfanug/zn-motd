@@ -157,3 +157,4 @@ fi
 remove_cmd "motd"
 mv "$TMP_DIR/$MOTD" "$STARTUP_DIR/$MOTD"
 add_cmd "$STARTUP_DIR/$MOTD" "motd"
+rm -rf "$TMP_DIR" >/dev/null 2>&1
