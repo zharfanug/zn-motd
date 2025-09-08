@@ -27,6 +27,7 @@ undim="\033[0m"    # Reset text style
 
 TMP_DIR="/tmp/.zn-motd"
 if [ -d "$HOME" ]; then
+  TMP_DIR="$HOME/.zn-motd"
 fi
 CURRENT_DATE=$(date +'%Y%m%d')
 VER_FILE_prefix="zn-motd-ver_"
