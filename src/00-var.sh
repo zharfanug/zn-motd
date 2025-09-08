@@ -25,7 +25,9 @@ Y="\033[1;33m"     # Yellow
 dim="\033[2m"      # Dim text
 undim="\033[0m"    # Reset text style
 
-TMP_DIR="/tmp/zn-motd"
+TMP_DIR="/tmp/.zn-motd"
+if [ -d "$HOME" ]; then
+fi
 CURRENT_DATE=$(date +'%Y%m%d')
 VER_FILE_prefix="zn-motd-ver_"
 VER_FILE="${VER_FILE_prefix}${CURRENT_DATE}"

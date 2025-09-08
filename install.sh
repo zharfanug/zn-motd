@@ -11,7 +11,7 @@ Y="\e[1;33m"
 dim="\e[2m"
 undim="\e[0m"
 
-TMP_DIR="/tmp/zn-motd"
+TMP_DIR="/tmp/.zn-motd"
 
 repo_update=0
 
@@ -22,22 +22,19 @@ if [ "$(id -u)" -ne 0 ]; then
   exit
 fi
 
-# echo "Running the install.sh as $(whoami)"
-
-if [ -x "/bin/sudo" ]; then
-  [ -x "/bin/rm" ] && alias rm='sudo /bin/rm -f'
-  [ -x "/bin/mv" ] && alias mv='sudo /bin/mv -f'
-  [ -x "/bin/ln" ] && alias ln='sudo /bin/ln'
-  [ -x "/bin/chmod" ] && alias chmod='sudo /bin/chmod'
-  [ -x "/bin/curl" ] && alias curl='sudo /bin/curl'
+if command -v sudo >/dev/null 2>&1; then
+  rm() { sudo rm -f "$@" || exit 1; }
+  mv() { sudo mv -f "$@" || exit 1; }
+  ln() { sudo ln "$@" || exit 1; }
+  chmod() { sudo chmod "$@" || exit 1; }
+  curl() { sudo curl "$@" || exit 1; }
 else
-  [ -x "/bin/rm" ] && alias rm='/bin/rm -f'
-  [ -x "/bin/mv" ] && alias mv='/bin/mv -f'
-  [ -x "/bin/ln" ] && alias ln='/bin/ln'
-  [ -x "/bin/chmod" ] && alias chmod='/bin/chmod'
-  [ -x "/bin/curl" ] && alias curl='/bin/curl'
+  rm() { command rm -f "$@" || exit 1; }
+  mv() { command mv -f "$@" || exit 1; }
+  ln() { command ln "$@" || exit 1; }
+  chmod() { command chmod "$@" || exit 1; }
+  curl() { command curl "$@" || exit 1; }
 fi
-[ -x "/bin/echo" ] && alias echo='/bin/echo'
 
 if command -v sudo >/dev/null 2>&1; then
   apt()    { sudo apt -y "$@" || exit 1; }
@@ -63,7 +60,7 @@ do_repo_update() {
     zypper refresh
   else
     repo_update=0
-    echo "❌ Error: No supported package manager found (apt, dnf, yum, zypper)"
+    echo "Error: No supported package manager found (apt, dnf, yum, zypper)"
   fi
 }
 
@@ -81,7 +78,7 @@ install_pkg() {
   elif command -v zypper >/dev/null 2>&1; then
     zypper install "$1"
   else
-    echo "❌ Error: No supported package manager found (apt, dnf, yum, zypper)"
+    echo "Error: No supported package manager found (apt, dnf, yum, zypper)"
     if [ "$2" = "true" ]; then
       exit 1
     fi

@@ -103,6 +103,7 @@ EOF
   
   pub_ip_info="Unavailable"
   if [ -f "$TMP_DIR/$PUB_IP_FILE" ]; then
+    echo "$TMP_DIR/$PUB_IP_FILE"
     pub_ip_info=$(cat $TMP_DIR/$PUB_IP_FILE)
   else
     if command -v curl >/dev/null 2>&1; then
