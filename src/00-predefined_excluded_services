@@ -103,6 +103,7 @@ ubuntu-advantage
 udev
 udisks2
 unattended-upgrades
+update-hosts
 update-notifier-download
 update-notifier-motd
 upower
