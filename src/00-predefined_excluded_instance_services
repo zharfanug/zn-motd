@@ -1,7 +1,7 @@
 getty
 ifup
 lvm2
+serial-getty
 systemd-
-ttyS0
 user@
 user-
