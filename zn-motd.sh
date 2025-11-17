@@ -8,7 +8,7 @@ included_services="" # only config if somehow service is excluded by predifined 
 predefined_excluded_services="apparmor|apport|apt-|arp-|auditd|auth-rpcgss-|blk-availability|bolt|cgroupfs-mount|chrony|cloud-|console-|containerd|cpupower|cron|cryptdisks|dbus|debug-shell|dmesg|dm-event|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty-|gpu-manager|grub-|grub2-|hwclock|ifup|initrd-|irqbalance|iscsi|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|ModemManager|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|procps|quotaon|raid-|rc.service|rc-local|rcS.service|rdisc|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|screen-cleanup|secureboot-db|selinux-|setvtrgb|snap|snmpd|ssh|sssd|sudo|sysstat-|systemd-|system-update-cleanup|thermald|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-hosts|update-notifier-download|update-notifier-motd|upower|usbmuxd|uuidd|vgauth|wazuh-indexer-|wsl-|wtmpdb-|x11-common|xfs_scrub_all"
 predefined_excluded_instance_services="getty|ifup|lvm2|serial-getty|systemd-|user@|user-"
 
-motd_ver="1.0.11_202511171152"
+motd_ver="1.0.12_202511171422"
 
 # Usage threshold
 warn_usage=50
@@ -149,7 +149,9 @@ print_active_logins() {
 print_reboot_check() {
   # Check if reboot is required
   if [ -f /var/run/reboot-required ]; then
-    echo -e "\n${W}Reboot Required: ${R}$(cat /var/run/reboot-required) ${W}"
+    if [ -s /var/run/reboot-required ]; then
+      echo -e "\n${W}Reboot Required: ${R}$(cat /var/run/reboot-required) ${W}"
+    fi
   fi
 }
 
