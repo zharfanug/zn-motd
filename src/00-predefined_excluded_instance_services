@@ -2,5 +2,6 @@ getty
 ifup
 lvm2
 systemd-
+ttyS0
 user@
 user-
