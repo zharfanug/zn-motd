@@ -141,6 +141,8 @@ if [ -z "$BIN_DIR" ]; then
   exit 1
 fi
 
+exec 2>/dev/null
+
 if [ "$(id -u)" -eq 0 ]; then
   cp -f "${DATA_DIR}/${MOTD_FILE}" "${STARTUP_DIR}/"
   chmod +x "${STARTUP_DIR}/${MOTD_FILE}"
@@ -184,5 +186,3 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 printf "\n==========================================================\n\n"
-
-"${BIN_DIR}/${BIN_FILE}"
