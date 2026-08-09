@@ -10,7 +10,7 @@ included_services="" # only config if somehow service is excluded by predifined 
 # Predefined service config
 predefined_excluded_services="accounts-daemon|alsa-|anacron|apport|apt-|arp-|audit-|auth-rpcgss-|auto-cpu|avahi-daemon|blk-availability|bolt|cgroupfs-mount|chrony|cloud-|connman|console-|containerd|cpupower|cron|cryptdisks|cups|dbus|debug-shell|dm-event|dmesg|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty|getty-|gpu-manager|grub-|grub2-|haveged|hwclock|ifup|initrd-|ipset|irqbalance|iscsi|kbd|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|mkinitcpio-|ModemManager|modprobe|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|nslcd|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|power-profiles-|procps|quotaon|raid-|rc-local|rc.service|rcS.service|rdisc|rescue|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|rtkit-|screen-cleanup|sddm|secureboot-db|selinux-|serial-getty|setvtrgb|smartmontools|snap|snmpd|ssh|sssd|sudo|switcheroo-control|sysstat-|system-update-cleanup|system76-|systemd-|thermald|tlp|tuned|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-hosts|update-notifier-download|update-notifier-motd|upower|usbmuxd|user-|user@|uuidd|vgauth|wazuh-indexer-|wpa_supplicant|wsl-|wtmpdb-|x11-common|xfs_scrub_all"
 
-motd_ver="2.1.15_202608081514"
+motd_ver="2.1.16_202608100648"
 
 # Repo URL
 REPO="zharfanug/zn-motd"
@@ -25,6 +25,7 @@ VER_FILE_prefix="remote-ver_"
 PUB_IP_FILE_prefix="pub-ip_"
 ASN_FILE_prefix="asn-org_"
 MOTD_FILE="zn-motd.sh"
+INSTALL_FILE="install.sh"
 STARTUP_DIR="/etc/profile.d"
 BIN_FILE="motd"
 
@@ -1393,24 +1394,41 @@ check_update() {
   fi
 }
 
-# Runs a fresh install.sh straight off the network — never from a file on
-# disk — and lets IT handle the actual install/overwrite. update_motd used
-# to do that itself with cp -f, but that overwrites the very file the
+# Fetches a fresh install.sh into $DATA_DIR (never touching $STARTUP_DIR)
+# and runs it as a real file, not a curl|sh pipe — a piped script runs
+# with no real $0, which breaks install.sh's own SCRIPT_NAME-derived
+# paths, and a dropped connection mid-pipe would leave sh executing a
+# half-received script. update_motd used to overwrite $STARTUP_DIR
+# in place with cp -f, but that overwrites the very file the
 # currently-running interpreter is still reading from: truncating it
 # mid-execution corrupts the running process with an unexpected EOF.
-# Piping a brand-new copy through sh sidesteps that entirely, since it
-# never touches the file the current process has open.
+# Downloading to $DATA_DIR first sidesteps that entirely, since it never
+# touches the file the current process has open.
 install_motd() {
+  _installer="${DATA_DIR}/${INSTALL_FILE}"
+
+  mkdir -p "$DATA_DIR" 2>/dev/null
+
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$INSTALL_URL" | sh >/dev/null
-    return $?
+    curl -fsSL -o "$_installer" "$INSTALL_URL"
+    _rc=$?
   elif command -v wget >/dev/null 2>&1; then
-    wget -qO- "$INSTALL_URL" | sh >/dev/null
-    return $?
+    wget -qO "$_installer" "$INSTALL_URL"
+    _rc=$?
   else
     log_error "Neither curl nor wget is available — please install one of them"
     exit 1
   fi
+
+  if [ "$_rc" -ne 0 ]; then
+    log_error "Failed to download ${INSTALL_URL}"
+    return 1
+  fi
+  
+  exec 2>/dev/null
+  chmod +x "$_installer"
+  "$_installer" >/dev/null
+  return $?
 }
 
 update_motd() {
