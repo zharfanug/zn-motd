@@ -25,6 +25,7 @@ VER_FILE_prefix="remote-ver_"
 PUB_IP_FILE_prefix="pub-ip_"
 ASN_FILE_prefix="asn-org_"
 MOTD_FILE="zn-motd.sh"
+INSTALL_FILE="install.sh"
 STARTUP_DIR="/etc/profile.d"
 BIN_FILE="motd"
 
