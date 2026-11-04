@@ -148,24 +148,39 @@ get_active_logins() {
       ntoks[NR] = n
       extras[NR] = extra
       for (i = 2; i <= n; i++) toks[NR, i] = tok[i]
+
+      # Find the actual terminal/device token by its own shape (pts/0,
+      # tty1, seat0, :0, console, ...) instead of only inferring it from
+      # cross-row token counts below. That cross-row inference breaks
+      # when every row (or the only row) has a compound terminal like
+      # "sshd pts/0" (seen in the wild on some sshd setups), since there
+      # is then no plain baseline row left to diff against.
+      dev_idx[NR] = 0
+      for (i = 2; i <= n; i++) {
+        if (tok[i] ~ /^(:[0-9]+(\.[0-9]+)?|tty[0-9A-Za-z\/]*|pts\/[0-9]+|pty[0-9A-Za-z\/]*|seat[0-9]+|console|vc\/[0-9]+)$/) {
+          dev_idx[NR] = i
+          break
+        }
+      }
     }
     END {
       # The date/time token count stays constant across a single `who`
       # run (same locale, same command), so bootstrap it from whichever
       # row has the fewest extra tokens -- that must be a row with a
-      # plain one-token terminal (pts/0, tty1, seat0, etc). Any row with
-      # more extra tokens than that baseline has a multi-token terminal
-      # instead of a wider date (seen in the wild: some sshd setups
-      # record a compound line like "sshd pts/4"), so the surplus folds
-      # into the terminal instead of leaking into the date/time column.
+      # plain one-token terminal (pts/0, tty1, seat0, etc). Used only as
+      # a fallback for rows whose terminal token was not recognized above.
       date_tokens = min_extra - 1
       if (date_tokens < 1) date_tokens = 1
 
       for (r = 1; r <= NR; r++) {
         if (!(r in ntoks)) continue
 
-        term_count = extras[r] - date_tokens
-        if (term_count < 1) term_count = 1
+        if (dev_idx[r] > 0) {
+          term_count = dev_idx[r] - 1
+        } else {
+          term_count = extras[r] - date_tokens
+          if (term_count < 1) term_count = 1
+        }
 
         term = ""
         for (i = 2; i <= 1 + term_count; i++) {
