@@ -172,7 +172,12 @@ else
   log_warn "Could not download ${HASH_URL} — skipping checksum verification"
 fi
 
-chmod +x "${DATA_DIR}/${MOTD_FILE}"
+# Absolute mode, not "+x": a symbolic "+x" with no explicit who only adds
+# the bit to classes umask doesn't already block, so a hardened umask
+# (e.g. 027/077, common on locked-down servers) silently leaves a file
+# non-executable — or even unreadable — for anyone but its owner, even
+# right after chmod claims to have added +x.
+chmod 755 "${DATA_DIR}/${MOTD_FILE}"
 
 STARTUP_DIR="/etc/profile.d"
 BIN_DIR=""
@@ -209,12 +214,12 @@ REAL_MOTD_FILE=".${MOTD_FILE}"
 
 if [ "$(id -u)" -eq 0 ]; then
   cp -f "${DATA_DIR}/${MOTD_FILE}" "${STARTUP_DIR}/${REAL_MOTD_FILE}"
-  chmod +x "${STARTUP_DIR}/${REAL_MOTD_FILE}"
+  chmod 755 "${STARTUP_DIR}/${REAL_MOTD_FILE}"
 
   printf '#!/bin/sh\n[ -x "%s" ] && "%s"\n' \
     "${STARTUP_DIR}/${REAL_MOTD_FILE}" "${STARTUP_DIR}/${REAL_MOTD_FILE}" \
     > "${STARTUP_DIR}/${MOTD_FILE}"
-  chmod +x "${STARTUP_DIR}/${MOTD_FILE}"
+  chmod 755 "${STARTUP_DIR}/${MOTD_FILE}"
 
   rm -f "${BIN_DIR}/${BIN_FILE}"
   ln -s "${STARTUP_DIR}/${REAL_MOTD_FILE}" "${BIN_DIR}/${BIN_FILE}"
@@ -232,7 +237,7 @@ else
     log_error "Failed to install to ${BIN_DIR}/${BIN_FILE} — try running as root"
     exit 1
   fi
-  chmod +x "${BIN_DIR}/${BIN_FILE}"
+  chmod 755 "${BIN_DIR}/${BIN_FILE}"
 fi
 
 if ! command -v sar >/dev/null 2>&1; then
