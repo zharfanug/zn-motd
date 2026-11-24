@@ -8,14 +8,14 @@ excluded_services="" # split by '|' and no space, example: excluded_services="my
 included_services="" # only config if somehow service is excluded by predifined settings
 
 # Predefined service config
-predefined_excluded_services="accounts-daemon|aide-|alsa-|anacron|apport|apt-|arp-|audit-|auth-rpcgss-|auto-cpu|avahi-daemon|blk-availability|bolt|cgroupfs-mount|chrony|cloud-|connman|console-|containerd|cpupower|cron|cryptdisks|cups|dailyaidecheck|dbus|debug-shell|dm-event|dmesg|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty|getty-|gpu-manager|grub-|grub2-|haveged|hwclock|ifup|initrd-|ipset|irqbalance|iscsi|kbd|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|mkinitcpio-|ModemManager|modprobe|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|nslcd|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|power-profiles-|procps|quotaon|raid-|rc-local|rc.service|rcS.service|rdisc|rescue|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|rtkit-|screen-cleanup|sddm|secureboot-db|selinux-|serial-getty|setvtrgb|smartmontools|snap|snmpd|ssh|sssd|sudo|switcheroo-control|sysstat-|system-update-cleanup|system76-|systemd-|thermald|tlp|tuned|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-hosts|update-notifier-download|update-notifier-motd|upower|usbmuxd|user-|user@|uuidd|vapp-seed|vgauth|wazuh-indexer-|wpa_supplicant|wsl-|wtmpdb-|x11-common|xfs_scrub_all"
+predefined_excluded_services="accounts-daemon|aide-|alsa-|anacron|apport|apt-|arp-|audit-|auth-rpcgss-|auto-cpu|avahi-daemon|blk-availability|blueman-|bluetooth|bolt|cgroupfs-mount|chrony|cloud-|connman|console-|containerd|cpupower|cron|cryptdisks|cups|dailyaidecheck|dbus|debug-shell|dm-event|dmesg|dnf-|dpkg|dracut-|e2scrub|emergency|esm-cache|finalrd|friendly-recovery|fstrim|fwupd|getty|getty-|gpu-manager|grub-|grub2-|haveged|hwclock|ifup|initrd-|ipset|irqbalance|iscsi|kbd|kdump|keyboard-setup|kmod|kvm_|landscape-|ldconfig|logrotate|lvm-devices|lvm2|lxd-agent|man-db|mdcheck|mdmonitor|microcode|mkinitcpio-|ModemManager|modprobe|motd-news|multipath-|multipathd|netplan-ovs-cleanup|networkd-dispatcher|networking|NetworkManager|nfs-common|nfs-idmapd|nfs-utils|nis-|nm-|nslcd|nvidia-|open-iscsi|packagekit|pam_namespace|phpsessionclean|plymouth|polkit|pollinate|power-profiles-|procps|quotaon|raid-|rc-local|rc.service|rcS.service|rdisc|rescue|rescue.service|rpc-gssd|rpc-statd|rpc-svcgssd|rpmdb-|rsync|rtkit-|screen-cleanup|sddm|secureboot-db|selinux-|serial-getty|setvtrgb|smartmontools|snap|snmpd|ssh|sssd|sudo|swap-grow|switcheroo-control|sysstat-|system-update-cleanup|system76-|systemd-|thermald|tlp|tuned|ua-reboot-cmds|ua-timer|ubuntu-advantage|udev|udisks2|unattended-upgrades|update-hosts|update-notifier-download|update-notifier-motd|upower|usbmuxd|user-|user@|uuidd|vapp-seed|vgauth|wazuh-indexer-|wpa_supplicant|wsl-|wtmpdb-|x11-common|xfs_scrub_all"
 
-motd_ver="2.1.20_202611241602"
+motd_ver="3.0.0"
 
 # Repo URL
 REPO="zharfanug/zn-motd"
-VER_URL="https://raw.githubusercontent.com/${REPO}/latest/VERSION"
-INSTALL_URL="https://raw.githubusercontent.com/${REPO}/latest/install.sh"
+VER_URL="https://github.com/${REPO}/releases/latest/download/VERSION"
+INSTALL_URL="https://raw.githubusercontent.com/${REPO}/main/install.sh"
 
 # Data
 TMP_DIR=${HOME:-/tmp}
