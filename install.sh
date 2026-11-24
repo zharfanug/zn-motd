@@ -86,9 +86,12 @@ require_cmd_list() {
   done
 }
 
-# Repo URL
+# Repo URL — zn-motd.sh and its checksum are release attachments, fetched
+# via GitHub's "latest release" download alias (no API call, no rate
+# limit, served off the same CDN as a normal release asset download).
 REPO="zharfanug/zn-motd"
-MOTD_URL="https://raw.githubusercontent.com/${REPO}/latest/zn-motd.sh"
+MOTD_URL="https://github.com/${REPO}/releases/latest/download/zn-motd.sh"
+HASH_URL="https://github.com/${REPO}/releases/latest/download/zn-motd.sh.sha256"
 
 # Data
 TMP_DIR=${HOME:-/tmp}
@@ -96,8 +99,9 @@ DATA_DIR_NAME=".zn-motd"
 DATA_DIR="${TMP_DIR}/${DATA_DIR_NAME}"
 VER_FILE_prefix="remote-ver_"
 MOTD_FILE="zn-motd.sh"
+HASH_FILE="zn-motd.sh.sha256"
 
-require_cmd_list "id" "mkdir" "chmod" "cp" "rm" "ln" "grep" "date"
+require_cmd_list "id" "mkdir" "chmod" "cp" "rm" "ln" "grep" "date" "awk"
 
 # download URL OUTPUT — curl first, wget fallback, log_error on any failure.
 download() {
@@ -122,9 +126,52 @@ download() {
   return "$_rc"
 }
 
+# verify_sha256 FILE HASH_FILE — compares FILE's checksum against the one
+# recorded in HASH_FILE (format: "<hex>  <filename>", as written by
+# `sha256sum`). Tries the hashing tool each target platform actually
+# ships (coreutils, macOS/BSD, busybox); if none are present, warns and
+# skips rather than hard-failing a minimal/embedded install over a
+# missing optional tool.
+verify_sha256() {
+  _file="$1"
+  _hash_file="$2"
+  _expected=$(awk '{print $1; exit}' "$_hash_file" 2>/dev/null)
+
+  if [ -z "$_expected" ]; then
+    log_warn "Could not read expected checksum from ${_hash_file} — skipping verification"
+    return 0
+  fi
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    _actual=$(sha256sum "$_file" | awk '{print $1}')
+  elif command -v shasum >/dev/null 2>&1; then
+    _actual=$(shasum -a 256 "$_file" | awk '{print $1}')
+  elif command -v sha256 >/dev/null 2>&1; then
+    _actual=$(sha256 -q "$_file" 2>/dev/null) || _actual=$(sha256 "$_file" | awk '{print $NF}')
+  else
+    log_warn "No sha256 tool found (sha256sum/shasum/sha256) — skipping checksum verification"
+    return 0
+  fi
+
+  if [ "$_expected" != "$_actual" ]; then
+    log_error "Checksum mismatch for ${_file} (expected ${_expected}, got ${_actual})"
+    return 1
+  fi
+
+  log "Checksum verified for ${_file}"
+  return 0
+}
+
 log "Downloading ${MOTD_URL}"
 mkdir -p "$DATA_DIR" 2>/dev/null
 download "$MOTD_URL" "${DATA_DIR}/${MOTD_FILE}" || exit 1
+
+if download "$HASH_URL" "${DATA_DIR}/${HASH_FILE}"; then
+  verify_sha256 "${DATA_DIR}/${MOTD_FILE}" "${DATA_DIR}/${HASH_FILE}" || exit 1
+else
+  log_warn "Could not download ${HASH_URL} — skipping checksum verification"
+fi
+
 chmod +x "${DATA_DIR}/${MOTD_FILE}"
 
 STARTUP_DIR="/etc/profile.d"

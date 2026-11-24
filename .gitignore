@@ -1,3 +1,4 @@
 .*/
 *.code-workspaces
 dev-build/
+zn-motd.sh.sha256

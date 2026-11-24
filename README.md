@@ -19,16 +19,17 @@ A customizable Message of the Day (MOTD) banner for Linux systems. It provides a
 ## Installation
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/zharfanug/zn-motd/latest/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/zharfanug/zn-motd/main/install.sh | sh
 ```
 
 or, if `curl` isn't available:
 
 ```sh
-wget -qO- https://raw.githubusercontent.com/zharfanug/zn-motd/latest/install.sh | sh
+wget -qO- https://raw.githubusercontent.com/zharfanug/zn-motd/main/install.sh | sh
 ```
 
-The installer downloads the latest built `zn-motd.sh` and:
+The installer downloads the latest released `zn-motd.sh`, verifies it
+against its published checksum, and:
 
 - **as root** — installs it to `/etc/profile.d/`, so it runs automatically on
   every login shell, and symlinks a `motd` command into `/usr/local/bin` (or
@@ -105,21 +106,6 @@ failure: a public-IP/ASN lookup (`ifconfig.co`) shown in System Info, and a
 once-a-day check of the latest released version (cached under `~/.zn-motd/`,
 one request per day at most).
 
-## Development
+## Changelog
 
-Source lives in `src/`, split into numerically-prefixed files that get
-concatenated in order — the number controls where each file lands in the
-final build (`00-` config/helpers, `20-` prereqs, `30-` data-gathering
-modules, `9x-` entry points).
-
-```sh
-git clone https://github.com/zharfanug/zn-motd.git
-cd zn-motd-dev
-./tools/build.sh            # build dev-build/motd.sh and run it
-./tools/build.sh --release  # bump VERSION, build zn-motd.sh at the repo root,
-                             # commit, tag "latest", and push (if a remote is configured)
-```
-
-`VERSION` follows `MAJOR.MINOR.PATCH_TIMESTAMP` (e.g. `2.0.5_202607272123`);
-`tools/update.sh` bumps it, `tools/build.sh --release` calls that
-automatically.
+See [CHANGELOG.md](CHANGELOG.md) for release history.

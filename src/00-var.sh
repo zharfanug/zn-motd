@@ -14,8 +14,8 @@ motd_ver=""
 
 # Repo URL
 REPO="zharfanug/zn-motd"
-VER_URL="https://raw.githubusercontent.com/${REPO}/latest/VERSION"
-INSTALL_URL="https://raw.githubusercontent.com/${REPO}/latest/install.sh"
+VER_URL="https://github.com/${REPO}/releases/latest/download/VERSION"
+INSTALL_URL="https://raw.githubusercontent.com/${REPO}/main/install.sh"
 
 # Data
 TMP_DIR=${HOME:-/tmp}
