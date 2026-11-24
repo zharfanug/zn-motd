@@ -94,6 +94,7 @@ MOTD_URL="https://raw.githubusercontent.com/${REPO}/latest/zn-motd.sh"
 TMP_DIR=${HOME:-/tmp}
 DATA_DIR_NAME=".zn-motd"
 DATA_DIR="${TMP_DIR}/${DATA_DIR_NAME}"
+VER_FILE_prefix="remote-ver_"
 MOTD_FILE="zn-motd.sh"
 
 require_cmd_list "id" "mkdir" "chmod" "cp" "rm" "ln" "grep" "date"
@@ -143,12 +144,36 @@ fi
 
 exec 2>/dev/null
 
+# The real script goes in as ".${MOTD_FILE}" (dot-prefixed), so
+# /etc/profile.d's own "*.sh" glob skips it, and ${MOTD_FILE} itself
+# becomes a one-line shim that *runs* that file as a child process
+# instead of sourcing it. /etc/profile.d/*.sh files are sourced (". $i")
+# into the login shell, not executed — display managers commonly invoke
+# a session-startup script with their own argument (e.g. Xsession's
+# session command) and that script sources /etc/profile without
+# clearing it first, so $1 inside anything /etc/profile.d sources is
+# often leftover from the caller, not a real CLI flag. The old
+# single-file install sourced zn-motd.sh directly, so a stray "$1" like
+# that hit zn-motd.sh's "Unknown option" branch and ran `exit 1` —
+# which, being sourced, killed the *login shell itself* before it ever
+# got to exec the desktop session (can't log in; removing the file from
+# /etc/profile.d fixes it, since nothing sources it anymore). Running it
+# as a child process instead means any exit — on purpose or by bug — only
+# ends that child, never the shell that's logging the user in.
+REAL_MOTD_FILE=".${MOTD_FILE}"
+
 if [ "$(id -u)" -eq 0 ]; then
-  cp -f "${DATA_DIR}/${MOTD_FILE}" "${STARTUP_DIR}/"
+  cp -f "${DATA_DIR}/${MOTD_FILE}" "${STARTUP_DIR}/${REAL_MOTD_FILE}"
+  chmod +x "${STARTUP_DIR}/${REAL_MOTD_FILE}"
+
+  printf '#!/bin/sh\n[ -x "%s" ] && "%s"\n' \
+    "${STARTUP_DIR}/${REAL_MOTD_FILE}" "${STARTUP_DIR}/${REAL_MOTD_FILE}" \
+    > "${STARTUP_DIR}/${MOTD_FILE}"
   chmod +x "${STARTUP_DIR}/${MOTD_FILE}"
+
   rm -f "${BIN_DIR}/${BIN_FILE}"
-  ln -s "${STARTUP_DIR}/${MOTD_FILE}" "${BIN_DIR}/${BIN_FILE}"
-  log "Installed to ${STARTUP_DIR}/${MOTD_FILE}, symlinked as ${BIN_DIR}/${BIN_FILE}"
+  ln -s "${STARTUP_DIR}/${REAL_MOTD_FILE}" "${BIN_DIR}/${BIN_FILE}"
+  log "Installed to ${STARTUP_DIR}/${REAL_MOTD_FILE}, run at login via ${STARTUP_DIR}/${MOTD_FILE}, symlinked as ${BIN_DIR}/${BIN_FILE}"
 else
   log_warn "Not running as root — installing to ${BIN_DIR}/${BIN_FILE} only; it won't run automatically at login"
   rm -f "${BIN_DIR}/${BIN_FILE}"
