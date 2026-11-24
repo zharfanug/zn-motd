@@ -189,8 +189,6 @@ if [ -z "$BIN_DIR" ]; then
   exit 1
 fi
 
-exec 2>/dev/null
-
 # The real script goes in as ".${MOTD_FILE}" (dot-prefixed), so
 # /etc/profile.d's own "*.sh" glob skips it, and ${MOTD_FILE} itself
 # becomes a one-line shim that *runs* that file as a child process
